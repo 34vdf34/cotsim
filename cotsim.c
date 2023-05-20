@@ -106,9 +106,6 @@ int send_cot_message(char *lat, char *lon, char* simulation_target) {
 	CURL *curl;
 	char request[2000];
 	
-	char *timestamp;
-	// iso8601(timestamp);
-	
 	log_debug("[%d] send_cot_message() #1 ",getpid());
 	
 	/* CoT template */
@@ -132,6 +129,9 @@ int send_cot_message(char *lat, char *lon, char* simulation_target) {
 		CURLcode res;
 		curl_socket_t sockfd;
 		size_t nsent_total = 0;
+		struct curl_slist *dns;
+		dns = curl_slist_append(NULL, "buildroot:8089:127.0.0.1");
+		curl_easy_setopt(curl, CURLOPT_RESOLVE, dns);	
 		curl_easy_setopt(curl, CURLOPT_URL, server_address);
 		/* TLS */ 
 		curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
@@ -252,8 +252,9 @@ int main(int argc, char *argv[])
     size_t len = 0;
     ssize_t read;
     fp = fopen(simulation_file, "r");
-    if (fp == NULL)
+    if (fp == NULL) {
         exit(EXIT_FAILURE);
+	}
 
 	log_debug("[%d] fopen_done",getpid());
     while ((read = getline(&line, &len, fp)) != -1) {
