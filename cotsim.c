@@ -54,6 +54,8 @@ char *ca_cert="";
 char *simulation_file="";
 char *simulation_target="";
 char *interval_wait="";
+char *cn_override_to_localhost="";
+char *port_override_to_localhost="";
 
 /* Auxiliary function that waits on the socket. */
 static int wait_on_socket(curl_socket_t sockfd, int for_recv, long timeout_ms)
@@ -130,7 +132,11 @@ int send_cot_message(char *lat, char *lon, char* simulation_target) {
 		curl_socket_t sockfd;
 		size_t nsent_total = 0;
 		struct curl_slist *dns;
-		dns = curl_slist_append(NULL, "buildroot:8089:127.0.0.1");
+		/* DNS override entry */
+		char dns_override_entry[256];
+		memset(dns_override_entry,0,256);
+		sprintf(dns_override_entry, "%s:%s:127.0.0.1",cn_override_to_localhost,port_override_to_localhost);
+		dns = curl_slist_append(NULL, dns_override_entry);
 		curl_easy_setopt(curl, CURLOPT_RESOLVE, dns);	
 		curl_easy_setopt(curl, CURLOPT_URL, server_address);
 		/* TLS */ 
@@ -232,7 +238,9 @@ int main(int argc, char *argv[])
 	ini_sget(config, "cotsim", "ca_cert", NULL, &ca_cert);
 	ini_sget(config, "cotsim", "simulation_file", NULL, &simulation_file); 
 	ini_sget(config, "cotsim", "simulation_target", NULL, &simulation_target); 	
-	ini_sget(config, "cotsim", "interval_wait", NULL, &interval_wait); 	
+	ini_sget(config, "cotsim", "interval_wait", NULL, &interval_wait);
+	ini_sget(config, "cotsim", "cn_override_to_localhost", NULL, &cn_override_to_localhost);
+	ini_sget(config, "cotsim", "port_override_to_localhost", NULL, &port_override_to_localhost);
 	
 	log_info("[%d] Server address: %s ",getpid(),server_address);
 	log_info("[%d] Client cert %s",getpid(),client_cert);
